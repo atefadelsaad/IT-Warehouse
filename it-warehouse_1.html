@@ -165,6 +165,11 @@ body:has(nav:empty) .scroll-top{bottom:calc(24px + env(safe-area-inset-bottom,0p
 .mf-hint{font-size:12.5px;color:var(--mut);line-height:1.7;margin:0}
 .print-only{display:none}
 .paper-wrap{width:100%;overflow-x:auto;padding:4px 0 18px;-webkit-overflow-scrolling:touch}
+.handover-actions{margin-top:14mm;padding:14px 16px;border-top:2px solid #dbe3ea;background:linear-gradient(135deg,#f8fafc,#eef4f8);border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:16px;box-shadow:0 5px 14px rgba(15,23,42,.08)}
+.handover-actions-title{display:flex;flex-direction:column;gap:3px}.handover-actions-title b{color:#1e293b;font-size:14px}.handover-actions-title span{color:#64748b;font-size:12px}
+.handover-actions .acts{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}.handover-actions .btn{min-width:145px;min-height:42px;font-weight:800;border-radius:9px}
+.handover-actions .btn:first-child{background:linear-gradient(135deg,#2563eb,#1d4ed8);box-shadow:0 5px 12px rgba(37,99,235,.24)}
+@media(max-width:640px){.handover-actions{align-items:stretch;flex-direction:column}.handover-actions .acts{justify-content:stretch}.handover-actions .btn{flex:1;min-width:0}}
 .maintenance-form-preview{margin-top:12px;padding:12px;border:1px solid var(--ln);border-radius:12px;background:var(--soft)}
 .maintenance-form-preview .paper-wrap{max-height:680px;overflow:auto;background:#202733;border-radius:8px;padding:12px}
 .maintenance-form-preview .paper-sheet{width:100%;min-height:0;margin:0 auto;box-shadow:none;border-radius:0}
@@ -487,7 +492,7 @@ const $=s=>document.querySelector(s);
 function updateScrollTopButton(){document.body.classList.toggle('scrolled',window.scrollY>320)}
 window.addEventListener('scroll',updateScrollTopButton,{passive:true});
 updateScrollTopButton();
-const e=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const e=s=>String(s).replace(/[&<>"'\\]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','\\':'&#92;'}[c]));
 const ok=a=>a==='userAdmin'?role==='admin':!!CAN[a]&&(
   STATE.user&&STATE.user.permissions&&Object.prototype.hasOwnProperty.call(STATE.user.permissions,a)
     ?STATE.user.permissions[a]===true:CAN[a].includes(role)
@@ -568,6 +573,20 @@ function confirmDelete(title,detail){
     backdrop.querySelector('#deleteReason').focus();
   });
 }
+
+document.addEventListener('click',event=>{
+  const edit=event.target.closest('[data-branch-edit]');
+  if(edit){
+    const b=br(edit.dataset.branchEdit);
+    if(b){
+      branchEditState={id:b.id,name:b.n,number:b.number||'',gov:b.g,manager:b.manager||'',phone:b.phone||'',address:b.address||'',location:b.location||'',unsaved:true};
+      go();
+    }
+    return;
+  }
+  const photo=event.target.closest('[data-photo-id]');
+  if(photo)openInspectionPhoto(photo.dataset.photoId);
+});
 
 function renderLogin(msg){
   $('#nav').innerHTML='';$('#roleBar').innerHTML='';
@@ -765,7 +784,7 @@ function vHandover(){
   <div class="mf-sec"><div class="mf-sec-head">إكسسوارات مضافة كعهدة</div><table class="dsp-table"><thead><tr><th>النوع</th><th>الكود</th><th>S/N</th></tr></thead><tbody>${Array.from({length:6},(_,i)=>`<tr><td><input class="mf-line" id="ho_acc_type_${i}"></td><td><input class="mf-line" id="ho_acc_code_${i}"></td><td><input class="mf-line" id="ho_acc_sn_${i}"></td></tr>`).join('')}</tbody></table></div>
   <div class="mf-sec"><div class="mf-sec-head">إقرار</div><div class="mf-table"><div class="mf-cell mf-block"><div class="mf-row" style="grid-template-columns:1fr"><div class="mf-cell"><span class="mf-label">إقرار أنا /</span><input class="mf-line" id="ho_declarant"></div><div class="mf-cell"><span class="mf-label">بطاقة رقم قومي /</span><input class="mf-line" id="ho_nationalId"></div><div class="mf-cell"><span class="mf-label">في وظيفة /</span><input class="mf-line" id="ho_job"></div><div class="mf-cell"><span class="mf-label">وأعمل لدى شركة /</span><input class="mf-line" id="ho_workplace"></div></div><p>إني قد استلمت من الشركة ما هو مذكور أعلاه وذلك كعهدة لاستخدامها في أعمال الشركة وأتعهد بالمحافظة عليها وإعادة تسليمها للشركة عند انتهاء الغرض من استخدامها أو عند تركي العمل بالشركة، وفي حالة عدم تسليم العهدة المذكورة أعلاه كلها أو بعضها فإني أفوض الشركة في اتخاذ اللازم نحوي قانونيًا، سواء بخصم القيمة التي تقدرها مقابل هذه العهدة من مستحقاتي لديها أو من مالي الخاص، دون أي اعتراض مني على ذلك واتخاذ كافة الإجراءات القانونية ضدي.</p><div class="mf-row" style="grid-template-columns:1fr 1fr"><div class="mf-cell"><span class="mf-label">توقيع المستلم:</span><input class="mf-line" id="ho_receiverSig"></div><div class="mf-cell"><span class="mf-label">توقيع المسؤول عن التسليم:</span><input class="mf-line" id="ho_giverSig"></div></div></div></div></div>
   <div class="mf-sec"><div class="mf-sec-head">المقر فيه</div><div class="mf-table"><div class="mf-row" style="grid-template-columns:1.4fr 1fr 1fr"><div class="mf-cell"><span class="mf-label">الاسم:</span><input class="mf-line" id="ho_locationName"></div><div class="mf-cell"><span class="mf-label">الوظيفة:</span><input class="mf-line" id="ho_locationJob"></div><div class="mf-cell"><span class="mf-label">كود الموظف:</span><input class="mf-line" id="ho_locationCode"></div></div><div class="mf-row" style="grid-template-columns:1.4fr 1fr 1fr"><div class="mf-cell"><span class="mf-label">بطاقة رقم قومي:</span><input class="mf-line" id="ho_bottomNationalId"></div><div class="mf-cell"><span class="mf-label">التاريخ:</span><input class="mf-line" id="ho_locationDate" type="date"></div><div class="mf-cell"><span class="mf-label">مكان العمل:</span><input class="mf-line" id="ho_bottomWorkplace"></div></div></div></div>`;
-  return `<div class="hero no-print"><div><div class="eyebrow">العهد</div><h2>${icon('box')} نماذج استلام العهدة</h2></div><div class="acts"><button class="btn" onclick="document.getElementById('handoverForm').scrollIntoView({behavior:'smooth'})">نموذج جديد</button></div></div><div class="mf-page"><div class="paper-wrap"><section class="paper-sheet" id="handoverForm">${mfTitleBar('إقرار استلام عهدة')}${blank()}<div class="acts no-print" style="justify-content:center;margin-top:5mm"><button class="btn" onclick="saveHandover()">حفظ النموذج</button><button class="btn soft" onclick="window.print()">طباعة النموذج</button></div></section></div></div><section class="box no-print"><h3>النماذج المحفوظة</h3>${rows?`<div class="table-wrap"><table><thead><tr><th>م</th><th>المستلم</th><th>الفرع</th><th>كود الجهاز</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="mut">لا توجد نماذج محفوظة حتى الآن.</p>'}</section>`;
+  return `<div class="hero no-print"><div><div class="eyebrow">العهد</div><h2>${icon('box')} نماذج استلام العهدة</h2></div><div class="acts"><button class="btn" onclick="document.getElementById('handoverForm').scrollIntoView({behavior:'smooth'})">نموذج جديد</button></div></div><div class="mf-page"><div class="paper-wrap"><section class="paper-sheet" id="handoverForm">${mfTitleBar('إقرار استلام عهدة')}${blank()}<div class="handover-actions no-print"><div class="handover-actions-title"><b>إجراءات النموذج</b><span>احفظ البيانات أو اطبع الإقرار على ورق A4</span></div><div class="acts"><button class="btn" onclick="saveHandover()">حفظ النموذج</button><button class="btn soft" onclick="window.print()">طباعة النموذج</button></div></div></section></div></div><section class="box no-print"><h3>النماذج المحفوظة</h3>${rows?`<div class="table-wrap"><table><thead><tr><th>م</th><th>المستلم</th><th>الفرع</th><th>كود الجهاز</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p class="mut">لا توجد نماذج محفوظة حتى الآن.</p>'}</section>`;
 }
 function saveHandover(){
   const val=id=>String(document.getElementById(id)?.value||'').trim();
@@ -960,7 +979,7 @@ async function saveOwnPassword(){
 function vInspectionQueue(){
   if(!ok('inspectionReview'))return '<h2>غير مصرح</h2>';
   if(!INSPECTIONS.length)return '<h2>فحص الاستلامات</h2><div class="empty">لا توجد أصناف بانتظار الفحص.</div>';
-  return `<h2>فحص الاستلامات (${INSPECTIONS.length})</h2><p class="mut">الأصناف هنا محجوزة ولا يمكن صرفها حتى اعتماد النتيجة. الصنف المقبول يدخل المخزون، والتالف يُسجل في الخردة.</p>${INSPECTIONS.map(row=>`<article class="box"><div class="row" style="justify-content:space-between"><div><h3>${e(row.item)} · ${e(row.number)}</h3><div class="mut">${e(row.party||'-')} · ${dcell(row.date)} · الكمية: ${row.qty}</div></div><span class="chip warn">بانتظار الفحص</span></div><p><b>الحالة المسجلة:</b> ${e(row.condition||'غير محددة')} ${row.serials.length?`· <b>السيريال:</b> ${row.serials.map(e).join('، ')}`:''}</p>${row.notes?`<p><b>ملاحظات الاستلام:</b> ${e(row.notes)}</p>`:''}${row.photos.length?`<div class="row">${row.photos.map(photo=>`<img data-photo-id="${e(photo.id)}" onclick="openInspectionPhoto('${e(photo.id)}')" alt="صورة الصنف عند الاستلام" style="width:92px;height:92px;object-fit:cover;border-radius:8px;border:1px solid var(--ln);cursor:pointer">`).join('')}</div>`:''}<label>ملاحظة المراجع<textarea id="inspection_review_${row.lineId}" rows="2" maxlength="2000"></textarea></label><div class="acts" style="margin-top:10px"><button class="btn" onclick="reviewInspection(${row.voucherId},${row.lineId},'good')">اعتماد سليم وإضافته للمخزون</button><button class="btn bad" onclick="reviewInspection(${row.voucherId},${row.lineId},'damaged')">اعتماد تالف ونقله للخردة</button></div></article>`).join('')}`;
+  return `<h2>فحص الاستلامات (${INSPECTIONS.length})</h2><p class="mut">الأصناف هنا محجوزة ولا يمكن صرفها حتى اعتماد النتيجة. الصنف المقبول يدخل المخزون، والتالف يُسجل في الخردة.</p>${INSPECTIONS.map(row=>`<article class="box"><div class="row" style="justify-content:space-between"><div><h3>${e(row.item)} · ${e(row.number)}</h3><div class="mut">${e(row.party||'-')} · ${dcell(row.date)} · الكمية: ${row.qty}</div></div><span class="chip warn">بانتظار الفحص</span></div><p><b>الحالة المسجلة:</b> ${e(row.condition||'غير محددة')} ${row.serials.length?`· <b>السيريال:</b> ${row.serials.map(e).join('، ')}`:''}</p>${row.notes?`<p><b>ملاحظات الاستلام:</b> ${e(row.notes)}</p>`:''}${row.photos.length?`<div class="row">${row.photos.map(photo=>`<img data-photo-id="${e(photo.id)}" alt="صورة الصنف عند الاستلام" style="width:92px;height:92px;object-fit:cover;border-radius:8px;border:1px solid var(--ln);cursor:pointer">`).join('')}</div>`:''}<label>ملاحظة المراجع<textarea id="inspection_review_${row.lineId}" rows="2" maxlength="2000"></textarea></label><div class="acts" style="margin-top:10px"><button class="btn" onclick="reviewInspection(${row.voucherId},${row.lineId},'good')">اعتماد سليم وإضافته للمخزون</button><button class="btn bad" onclick="reviewInspection(${row.voucherId},${row.lineId},'damaged')">اعتماد تالف ونقله للخردة</button></div></article>`).join('')}`;
 }
 async function reviewInspection(voucherId,lineId,decision){
   if(decision==='damaged'&&!confirm('سيُنقل الصنف التالف إلى الخردة ولن يصبح متاحًا للصرف. هل تريد المتابعة؟'))return;
@@ -1657,7 +1676,7 @@ async function addInspectionPhotos(index,input){
   }catch(err){setFormError(err.message);input.value=''}
 }
 function inspectionPhotoPreview(line){
-  const saved=(line.insp&&line.insp.photos||[]).map(photo=>`<img data-photo-id="${e(photo.id)}" onclick="openInspectionPhoto('${e(photo.id)}')" alt="صورة محفوظة" style="width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--ln);cursor:pointer">`);
+  const saved=(line.insp&&line.insp.photos||[]).map(photo=>`<img data-photo-id="${e(photo.id)}" alt="صورة محفوظة" style="width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--ln);cursor:pointer">`);
   const fresh=(line.photoData||[]).map(photo=>`<img src="${photo}" alt="صورة جديدة" style="width:54px;height:54px;object-fit:cover;border-radius:6px;border:1px solid var(--ln)">`);
   return saved.concat(fresh).join('');
 }
@@ -1954,7 +1973,7 @@ function vBranch(){
   <div class="row"><label>اسم الفرع<input id="bed_n" value="${e(branchEditState.name)}"></label><label>رقم الفرع<input id="bed_num" value="${e(branchEditState.number||'')}"></label><label>المحافظة<select id="bed_g">${opts(govList(branchEditState.gov),branchEditState.gov)}</select></label></div>
   <div class="row"><label>مسؤول الفرع<input id="bed_man" value="${e(branchEditState.manager||'')}"></label><label>هاتف<input id="bed_phone" value="${e(branchEditState.phone||'')}"></label></div>
   <div class="row"><label>العنوان<input id="bed_addr" value="${e(branchEditState.address||'')}"></label><label>الموقع<input id="bed_loc" value="${e(branchEditState.location||'')}"></label></div>
-  <div class="row"><button class="btn" onclick="saveBranchEdit()">حفظ</button><button class="btn ghost" onclick="branchEditState=null;go()">إلغاء</button></div></div>`:`<div class="box tw" style="margin-bottom:10px"><h3>بيانات الفرع</h3><table><tr><th>المسؤول</th><td>${b.manager?e(b.manager):'-'}</td></tr><tr><th>الهاتف</th><td>${b.phone?e(b.phone):'-'}</td></tr><tr><th>العنوان</th><td>${b.address?e(b.address):'-'}</td></tr><tr><th>الموقع</th><td>${b.location?(b.location.match(/^https?:\/\//)?`<a href="${e(b.location)}" target="_blank" rel="noopener noreferrer">فتح الخريطة</a>`:e(b.location)):'-'}</td></tr></table>${ok('addBranch')?`<button class="btn ghost" onclick="branchEditState={id:${b.id},name:'${e(b.n)}',number:'${e(b.number||'')}',gov:'${e(b.g)}',manager:'${e(b.manager||'')}',phone:'${e(b.phone||'')}',address:'${e(b.address||'')}',location:'${e(b.location||'')}',unsaved:true};go()">تعديل بيانات الفرع</button>`:''}</div>`}
+  <div class="row"><button class="btn" onclick="saveBranchEdit()">حفظ</button><button class="btn ghost" onclick="branchEditState=null;go()">إلغاء</button></div></div>`:`<div class="box tw" style="margin-bottom:10px"><h3>بيانات الفرع</h3><table><tr><th>المسؤول</th><td>${b.manager?e(b.manager):'-'}</td></tr><tr><th>الهاتف</th><td>${b.phone?e(b.phone):'-'}</td></tr><tr><th>العنوان</th><td>${b.address?e(b.address):'-'}</td></tr><tr><th>الموقع</th><td>${b.location?(b.location.match(/^https?:\/\//)?`<a href="${e(b.location)}" target="_blank" rel="noopener noreferrer">فتح الخريطة</a>`:e(b.location)):'-'}</td></tr></table>${ok('addBranch')?`<button class="btn ghost" data-branch-edit="${b.id}">تعديل بيانات الفرع</button>`:''}</div>`}
   <div class="box tw"><h3>أصناف الفرع (${d.total})</h3>${sbox('britems','بحث: صنف، فئة، سيريال',d.total)}<div id="res_britems">${d.html}</div>${add}</div>`;
 }
 async function saveBranchEdit(){
